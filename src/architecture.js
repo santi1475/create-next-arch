@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import fs from "node:fs/promises";
 import path from "path";
 
 export const ARCH_ALIASES = {
@@ -102,7 +102,7 @@ export const ARCHITECTURES = {
 
 export async function injectArchitectureForTest(projectPath, architecture) {
   for (const folder of ARCHITECTURES[architecture].folders) {
-    await fs.ensureDir(path.join(projectPath, folder));
+    await fs.mkdir(path.join(projectPath, folder), { recursive: true });
     const contents = await fs.readdir(path.join(projectPath, folder));
     if (contents.length === 0) {
       await fs.writeFile(path.join(projectPath, folder, ".gitkeep"), "");
@@ -112,11 +112,11 @@ export async function injectArchitectureForTest(projectPath, architecture) {
 
 export async function patchTsConfigForTest(projectPath, architecture) {
   const tsp = path.join(projectPath, "tsconfig.json");
-  const ts  = await fs.readJson(tsp);
+  const ts  = JSON.parse(await fs.readFile(tsp, "utf-8"));
   ts.compilerOptions = ts.compilerOptions ?? {};
   ts.compilerOptions.paths = {
     "@/*": ["./src/*"],
     ...ARCH_ALIASES[architecture],
   };
-  await fs.writeJson(tsp, ts, { spaces: 2 });
+  await fs.writeFile(tsp, JSON.stringify(ts, null, 2));
 }

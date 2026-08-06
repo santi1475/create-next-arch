@@ -1,7 +1,16 @@
-import fs from "fs-extra";
+import fs from "node:fs/promises";
 import path from "path";
 import chalk from "chalk";
 import * as p from "@clack/prompts";
+
+async function pathExists(filepath) {
+  try {
+    await fs.access(filepath);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const RESOLUTION_I18N = {
   es: {
@@ -45,7 +54,7 @@ export async function handleDirectoryResolution(initialName, lang = "en") {
   let targetPath = path.resolve(process.cwd(), projectName);
   const r = RESOLUTION_I18N[lang] ?? RESOLUTION_I18N.en;
 
-  while (await fs.pathExists(targetPath)) {
+  while (await pathExists(targetPath)) {
     console.log(chalk.hex("#FF3366")(`\n  ⚠️  ${r.conflict(projectName)}`));
 
     const resolveAction = await p.select({
@@ -76,7 +85,7 @@ export async function handleDirectoryResolution(initialName, lang = "en") {
       if (confirmPurge) {
         const spinner = p.spinner();
         spinner.start(r.purging);
-        await fs.remove(targetPath);
+        await fs.rm(targetPath, { recursive: true, force: true });
         spinner.stop(chalk.green(`✨ ${r.purged}`));
         break; // Conflict resolved by purging
       }

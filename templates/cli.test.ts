@@ -1,9 +1,35 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import fs from "fs-extra";
+import { promises as fsPromises } from "node:fs";
 import path from "path";
 import os from "os";
 import { spawnSync } from "child_process";
+
+const fs = {
+  ensureDir: async (p: string) => {
+    await fsPromises.mkdir(p, { recursive: true });
+  },
+  writeJson: async (p: string, data: any, options?: any) => {
+    await fsPromises.writeFile(p, JSON.stringify(data, null, 2));
+  },
+  readJson: async (p: string) => {
+    return JSON.parse(await fsPromises.readFile(p, "utf-8"));
+  },
+  writeFile: fsPromises.writeFile,
+  readFile: fsPromises.readFile,
+  remove: async (p: string) => {
+    await fsPromises.rm(p, { recursive: true, force: true });
+  },
+  pathExists: async (p: string) => {
+    try {
+      await fsPromises.access(p);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  mkdtemp: fsPromises.mkdtemp,
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

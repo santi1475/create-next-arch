@@ -2,7 +2,7 @@
  * boilerplate.js — Clean Next.js boilerplate after create-next-app
  */
 
-import fs from "fs-extra";
+import fs from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ARCHITECTURES } from "./architecture.js";
@@ -283,7 +283,7 @@ export async function cleanBoilerplateForTest(projectPath, projectNameOrOptions,
     );
 
     const uiDir = path.join(projectPath, "src/shared/components/ui");
-    await fs.ensureDir(uiDir);
+    await fs.mkdir(uiDir, { recursive: true });
     await fs.writeFile(
       path.join(uiDir, "ThemeProvider.tsx"),
       await readTemplate("ThemeProvider.tsx")

@@ -2,121 +2,120 @@ import React from 'react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-muted rounded-full blur-3xl opacity-40 -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-muted rounded-full blur-3xl opacity-40 translate-x-1/2 translate-y-1/2" />
+    <main className="relative min-h-screen bg-[radial-gradient(ellipse_60%_50%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))] text-zinc-200 px-6 py-16 md:py-24 overflow-hidden">
+      {/* Decorative background grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-        <div className="relative px-6 py-20 sm:py-28 lg:py-32">
-          <div className="mx-auto max-w-3xl">
-            {/* Badge */}
-            <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-4 py-2 text-sm font-medium text-muted-foreground backdrop-blur-sm hover:bg-card/70 transition-colors">
-                <span className="flex h-2 w-2 rounded-full bg-foreground" />
-                {{ PROJECT_NAME }}
-              </div>
+      {/* Decorative glowing backdrops */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[350px] w-[500px] rounded-full bg-zinc-800/10 blur-[80px]" />
+      </div>
+
+      <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-16">
+        {/* Hero Section */}
+        <section className="text-center space-y-8">
+          {/* Badge */}
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800/60 bg-zinc-950/40 px-4.5 py-2 text-xs font-semibold tracking-wide text-zinc-400 backdrop-blur-sm">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              {{ PROJECT_NAME }}
             </div>
+          </div>
 
-            {/* Main Heading */}
-            <h1 className="text-center text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance leading-tight mb-6">
-              {{ PAGE_SIMPLE_TITLE }}
+          {/* Main Heading */}
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
+                {{ PAGE_SIMPLE_TITLE }}
+              </span>
             </h1>
 
             {/* Description */}
-            <p className="text-center text-base sm:text-lg text-muted-foreground text-balance leading-relaxed mb-8 mx-auto max-w-2xl">
+            <p className="mx-auto max-w-2xl text-base sm:text-lg text-zinc-400 leading-relaxed text-balance">
               {{ PAGE_SIMPLE_BODY }}
             </p>
+          </div>
 
-            {/* Code Block */}
-            <div className="mx-auto max-w-2xl mb-8">
-              <div className="group rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden hover:border-foreground/20 transition-colors">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 bg-muted/30">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-destructive/40" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/40" />
-                  </div>
-                  <span className="ml-auto text-xs text-muted-foreground font-mono">Terminal</span>
+          {/* Code Block / Terminal */}
+          <div className="mx-auto max-w-xl">
+            <div className="group rounded-2xl border border-zinc-800 bg-zinc-950/60 backdrop-blur-sm overflow-hidden hover:border-zinc-700/80 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.1)] transition-all duration-300">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-900 bg-zinc-950/40">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800 group-hover:bg-red-500/50 transition-colors" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800 group-hover:bg-yellow-500/50 transition-colors" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-800 group-hover:bg-green-500/50 transition-colors" />
                 </div>
-                <code className="block px-4 py-6 text-sm sm:text-base font-mono text-foreground overflow-x-auto">
-                  <span className="text-muted-foreground">$</span> {{ STARTER_COMMAND }}
-                </code>
+                <span className="ml-auto text-[10px] text-zinc-600 font-mono">Terminal</span>
               </div>
+              <code className="block px-6 py-6 text-sm font-mono text-zinc-300 overflow-x-auto text-left whitespace-nowrap">
+                <span className="text-zinc-600 select-none">$</span> {{ STARTER_COMMAND }}
+              </code>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Feature Grid */}
-      <section className="relative border-t border-border/30">
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20 lg:py-24">
+        {/* Feature Grid */}
+        <section className="border-t border-zinc-900/60 pt-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                title: 'Modern',
-                description: 'Built with the latest design patterns and best practices',
+                title: 'Moderno',
+                description: 'Construido con los últimos patrones de diseño y estándares de arquitectura limpia.',
               },
               {
-                title: 'Fast',
-                description: 'Optimized for performance with zero compromises',
+                title: 'Rápido',
+                description: 'Optimizado al máximo para el rendimiento y la velocidad de desarrollo.',
               },
               {
-                title: 'Scalable',
-                description: 'Ready to grow and adapt to your needs',
+                title: 'Escalable',
+                description: 'Preparado para crecer e incorporar nuevas capas funcionales sin fricciones.',
               },
             ].map((feature, index) => (
               <div
                 key={index}
-                className="group rounded-lg border border-border/50 bg-card/30 p-6 hover:border-border hover:bg-card/60 transition-all duration-300 cursor-pointer"
+                className="group relative rounded-2xl border border-zinc-900 bg-zinc-950/30 p-6 hover:border-zinc-800 hover:bg-zinc-950/50 hover:shadow-xl transition-all duration-300"
               >
-                <div className="mb-4 h-12 w-12 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors flex items-center justify-center">
-                  <div className="h-6 w-6 rounded bg-foreground/10" />
+                <div className="mb-4 h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800/80 group-hover:bg-zinc-800/60 transition-colors flex items-center justify-center">
+                  <div className="h-4 w-4 rounded-sm bg-gradient-to-r from-blue-500 to-cyan-500 opacity-60 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">
+                <h3 className="text-sm font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors font-semibold">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
                   {feature.description}
                 </p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Divider */}
-      <div className="relative border-t border-border/30" />
-
-      {/* CTA Section */}
-      <section className="relative">
-        <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20 lg:py-24">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
-              Ready to get started?
+        {/* CTA Section */}
+        <section className="border-t border-zinc-900/60 pt-16 text-center space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              ¿Listo para construir?
             </h2>
-            <p className="text-muted-foreground mb-8 text-balance">
-              Everything you need to build amazing things is already here.
+            <p className="mx-auto max-w-md text-xs text-zinc-400 leading-relaxed">
+              La base y los comandos del CLI están listos para empezar a desplegar tu lógica de negocio.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-                Get Started
-              </button>
-              <button className="px-8 py-3 border border-border bg-background text-foreground rounded-lg font-medium hover:bg-muted/30 transition-colors">
-                Learn More
-              </button>
-            </div>
           </div>
-        </div>
-      </section>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button className="w-full sm:w-auto px-6 py-2.5 bg-zinc-200 text-zinc-950 hover:bg-white rounded-xl text-xs font-bold transition-colors">
+              Comenzar a Editar
+            </button>
+            <button className="w-full sm:w-auto px-6 py-2.5 border border-zinc-800 bg-zinc-950/30 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950 hover:border-zinc-700 rounded-xl text-xs font-bold transition-all">
+              Leer Documentación
+            </button>
+          </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/30 bg-muted/20">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-950">
-          Kayros Systems
-        </p>
-      </footer>
+        {/* Footer */}
+        <footer className="flex items-center justify-between border-t border-zinc-900/60 pt-8 text-[10px] font-mono text-zinc-600">
+          <span>CREADO CON CREATE-WEB-ARCH // KAIROS SYSTEMS</span>
+          <span>© 2026</span>
+        </footer>
+      </div>
     </main>
   );
+}
 }

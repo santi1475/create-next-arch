@@ -3,7 +3,8 @@
  * Extracted as a module so tests can call it directly.
  */
 
-import fs from "fs-extra";
+import fs from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ARCHITECTURES, ARCH_ALIASES } from "./architecture.js";
@@ -12,7 +13,7 @@ import { buildShadcnConfig } from "./shadcn.js";
 // Windows ESM symlink fix: use import.meta.url directly
 const TEMPLATES = path.join(fileURLToPath(new URL(".", import.meta.url)), "../templates");
 const packageJsonPath = path.join(fileURLToPath(new URL(".", import.meta.url)), "../package.json");
-const VERSION = fs.readJsonSync(packageJsonPath).version;
+const VERSION = JSON.parse(readFileSync(packageJsonPath, "utf-8")).version;
 
 const readTemplate = async (filename, replacements = {}) => {
   const content = await fs.readFile(path.join(TEMPLATES, filename), "utf-8");
@@ -193,22 +194,22 @@ export async function injectConfigFilesForTest(projectPath, opts) {
   }
   if (extras.includes("commitlint")) {
     await fs.writeFile(path.join(projectPath, "commitlint.config.js"), await readTemplate("commitlint.config.js"));
-    await fs.ensureDir(path.join(projectPath, ".husky"));
+    await fs.mkdir(path.join(projectPath, ".husky"), { recursive: true });
     await fs.writeFile(path.join(projectPath, ".husky/commit-msg"),
       `#!/bin/sh\n. "$(dirname "$0")/_/husky.sh"\nnpx --no -- commitlint --edit "$1"\n`
     );
     await fs.chmod(path.join(projectPath, ".husky/commit-msg"), "755");
   }
   if (extras.includes("ghactions")) {
-    await fs.ensureDir(path.join(projectPath, ".github/workflows"));
+    await fs.mkdir(path.join(projectPath, ".github/workflows"), { recursive: true });
     await fs.writeFile(path.join(projectPath, ".github/workflows/ci.yml"),
       await readTemplate("ci.yml", { CACHE: cmds.cache, INSTALL_CI_CMD: cmds.installCI, PM: packageManager })
     );
   }
 
   // .web-arch.json
-  await fs.writeJson(path.join(projectPath, ".web-arch.json"), {
+  await fs.writeFile(path.join(projectPath, ".web-arch.json"), JSON.stringify({
     architecture, packageManager, lang, starter, version: VERSION,
     createdAt: new Date().toISOString(),
-  }, { spaces: 2 });
+  }, null, 2));
 }

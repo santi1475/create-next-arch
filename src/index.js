@@ -2,7 +2,8 @@
 
 import chalk from "chalk";
 import { program } from "commander";
-import fs from "fs-extra";
+import fs from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "path";
 import { spawnSync } from "child_process";
 import { fileURLToPath } from "url";
@@ -22,7 +23,27 @@ import { executeHighSpeedUnpack } from "./services/unpacker.js";
 const TEMPLATES = path.join(fileURLToPath(new URL(".", import.meta.url)), "../templates");
 
 const packageJsonPath = path.join(fileURLToPath(new URL(".", import.meta.url)), "../package.json");
-const VERSION = fs.readJsonSync(packageJsonPath).version;
+const VERSION = JSON.parse(readFileSync(packageJsonPath, "utf-8")).version;
+
+async function pathExists(filepath) {
+  try {
+    await fs.access(filepath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const resolveGeneratePath = (type, architecture, name, customPaths = {}) => {
+  if (customPaths[type]) {
+    return customPaths[type]
+      .replace(/\{\{\s*name\s*\}\}/g, name)
+      .replace(/\{\{\s*name_lowercase\s*\}\}/g, name.toLowerCase())
+      .replace(/\{\{\s*name_kebab\s*\}\}/g, toKebab(name))
+      .replace(/\{\{\s*name_pascal\s*\}\}/g, toPascal(name));
+  }
+  return GENERATE_PATHS[type][architecture](name);
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // i18n
@@ -127,8 +148,8 @@ const isInteractive = () => Boolean(process.stdin.isTTY && process.stdout.isTTY)
 
 const readProjectConfig = async () => {
   const p = path.join(process.cwd(), ".web-arch.json");
-  if (!(await fs.pathExists(p))) throw new Error("no_config");
-  return fs.readJson(p);
+  if (!(await pathExists(p))) throw new Error("no_config");
+  return JSON.parse(await fs.readFile(p, "utf-8"));
 };
 
 /** Global error display — polished output */
@@ -213,7 +234,7 @@ const createCommand = async (projectNameArg, cliOptions = {}) => {
     const resolution = await handleDirectoryResolution(projectName, lang);
     resolvedProjectName = resolution.projectName;
     projectPath = resolution.targetPath;
-  } else if (await fs.pathExists(projectPath)) {
+  } else if (await pathExists(projectPath)) {
     fatalError(new Error(t.err_exists(projectName)), t);
   }
 
@@ -222,10 +243,10 @@ const createCommand = async (projectNameArg, cliOptions = {}) => {
 
   // 2. Rename package.json name to the chosen project name
   const pkgJsonPath = path.join(projectPath, "package.json");
-  if (await fs.pathExists(pkgJsonPath)) {
-    const pkgJson = await fs.readJson(pkgJsonPath);
+  if (await pathExists(pkgJsonPath)) {
+    const pkgJson = JSON.parse(await fs.readFile(pkgJsonPath, "utf-8"));
     pkgJson.name = resolvedProjectName;
-    await fs.writeJson(pkgJsonPath, pkgJson, { spaces: 2 });
+    await fs.writeFile(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
   }
 
   // Write a minimal .web-arch.json config so the generate command knows the architecture template type
@@ -237,7 +258,7 @@ const createCommand = async (projectNameArg, cliOptions = {}) => {
     version: VERSION,
     createdAt: new Date().toISOString()
   };
-  await fs.writeJson(path.join(projectPath, ".web-arch.json"), configObj, { spaces: 2 });
+  await fs.writeFile(path.join(projectPath, ".web-arch.json"), JSON.stringify(configObj, null, 2));
 
   // 3. Install dependencies
   if (packageManager !== "skip") {
@@ -314,7 +335,7 @@ const generateCommand = async (type, name) => {
   // ── Dependency resolver ───────────────────────────────────────────────────
   let pkgJson = {};
   const pkgPath = path.join(process.cwd(), "package.json");
-  if (await fs.pathExists(pkgPath)) pkgJson = await fs.readJson(pkgPath);
+  if (await pathExists(pkgPath)) pkgJson = JSON.parse(await fs.readFile(pkgPath, "utf-8"));
 
   const missingDeps = checkMissingDeps(type, pkgJson);
   if (missingDeps.length) {
@@ -356,7 +377,7 @@ const generateCommand = async (type, name) => {
     generateSpinner.start(`Generating feature "${featureName}"…`);
     try {
       for (const sub of subfolders) {
-        await fs.ensureDir(path.join(featureDir, sub));
+        await fs.mkdir(path.join(featureDir, sub), { recursive: true });
         await fs.writeFile(path.join(featureDir, sub, ".gitkeep"), "");
       }
       const indexContent = await readTemplate("generate/feature-index.ts", {
@@ -378,7 +399,7 @@ const generateCommand = async (type, name) => {
     return;
   }
 
-  const destDir = path.join(process.cwd(), GENERATE_PATHS[type][architecture](name));
+  const destDir = path.join(process.cwd(), resolveGeneratePath(type, architecture, name, config.paths));
   let destFile, templateFile, replacements, testFile;
 
   if (type === "component" && framework === "astro") {
@@ -423,19 +444,43 @@ const generateCommand = async (type, name) => {
     if (withTest) testFile = path.join(destDir, `${componentName}.test.tsx`);
 
   } else if (type === "hook") {
+    let withTest = false;
+    if (isInteractive()) {
+      withTest = await p.confirm({
+        message: t.q_comp_test,
+        initialValue: false
+      });
+      if (p.isCancel(withTest)) {
+        p.cancel(t.cancelled);
+        process.exit(0);
+      }
+    }
     const hookName = toPascal(name);
     destFile     = path.join(destDir, `use${hookName}.ts`);
     templateFile = "generate/hook.ts";
     replacements = { HOOK_NAME: hookName };
+    if (withTest) testFile = path.join(destDir, `use${hookName}.test.ts`);
 
   } else if (type === "service") {
+    let withTest = false;
+    if (isInteractive()) {
+      withTest = await p.confirm({
+        message: t.q_comp_test,
+        initialValue: false
+      });
+      if (p.isCancel(withTest)) {
+        p.cancel(t.cancelled);
+        process.exit(0);
+      }
+    }
     const serviceName = toPascal(name);
     destFile     = path.join(destDir, `${serviceName}Service.ts`);
     templateFile = framework === "astro" ? "generate/service-astro.ts" : "generate/service.ts";
     replacements = { SERVICE_NAME: serviceName, SERVICE_SLUG: toKebab(serviceName) };
+    if (withTest) testFile = path.join(destDir, `${serviceName}Service.test.ts`);
   }
 
-  if (await fs.pathExists(destFile)) {
+  if (await pathExists(destFile)) {
     let overwrite = false;
     if (isInteractive()) {
       const overwriteVal = await p.confirm({
@@ -453,9 +498,16 @@ const generateCommand = async (type, name) => {
 
   generateSpinner.start(`Generating ${type} "${name}"…`);
   try {
-    await fs.ensureDir(destDir);
+    await fs.mkdir(destDir, { recursive: true });
     await fs.writeFile(destFile, await readTemplate(templateFile, replacements));
-    if (testFile) await fs.writeFile(testFile, await readTemplate("generate/component.test.tsx", replacements));
+    if (testFile) {
+      const testTemplate = type === "component"
+        ? "generate/component.test.tsx"
+        : type === "hook"
+          ? "generate/hook.test.ts"
+          : "generate/service.test.ts";
+      await fs.writeFile(testFile, await readTemplate(testTemplate, replacements));
+    }
     generateSpinner.stop(chalk.green(t.ok_gen(type, name)));
 
     console.log(`
